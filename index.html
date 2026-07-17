@@ -312,9 +312,19 @@ function render(units){
   const bs = stations[maxIdx];
   const bName = bs.tasks.map(t=>t.name).join(' y ');
   const bArea = stationAreas[maxIdx].toFixed(1);
-  document.getElementById('insight').textContent =
-    'Con ' + units + ' unidades por turno, la zona que más se llena es "' + bName +
-    '" (' + bs.time.toFixed(0) + ' s de los ' + c.toFixed(1) + ' s disponibles), y también es una de las que más espacio necesita (' + bArea + ' m²). En general, el paso más lento del proceso (el pasteurizado) es también el que más lugar ocupa en la planta: el mismo motivo por el que frena la producción — un equipo grande y un proceso largo — es el que exige más metros cuadrados.';
+  const maxAreaIdx = stationAreas.indexOf(maxArea);
+  const spaceName = stations[maxAreaIdx].tasks.map(t=>t.name).join(' y ');
+  const spaceArea = maxArea.toFixed(1);
+  let insightText = 'Con ' + units + ' unidades por turno, la zona que más se llena es "' + bName +
+    '" (' + bs.time.toFixed(0) + ' s de los ' + c.toFixed(1) + ' s disponibles), y necesita ' + bArea + ' m².';
+
+  if (maxIdx === maxAreaIdx) {
+    insightText += ' Es también la zona que más espacio ocupa de toda la planta: el mismo motivo por el que frena la producción — un equipo grande y un proceso largo — es el que exige más metros cuadrados.';
+  } else {
+    insightText += ' Sin embargo, la zona que más espacio físico requiere es otra: "' + spaceName + '" con ' + spaceArea + ' m², aunque no sea la que limita el ritmo de producción. Esto muestra que el cuello de botella en tiempo y el cuello de botella en espacio no siempre coinciden: depende de qué tareas queden agrupadas en cada estación según el ritmo de producción elegido.';
+  }
+
+  document.getElementById('insight').textContent = insightText;
 }
 
 document.getElementById('units').addEventListener('input', (e) => render(parseInt(e.target.value)));
