@@ -95,9 +95,43 @@
     clip: rect(0,0,0,0); white-space: nowrap; border: 0;
   }
   @keyframes flow { 0%{left:0%} 100%{left:100%} }
-  @keyframes pulseGlow { 0%,100%{opacity:1} 50%{opacity:.5} }
-  .bottleneck{ animation: pulseGlow 1.3s ease-in-out infinite; }
+  .station-card {
+    border-radius: var(--radius);
+    padding: 12px 8px 10px;
+    text-align: center;
+    min-height: 116px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.05);
+    position: relative;
+  }
+  @media (prefers-color-scheme: dark) {
+    .station-card { box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 2px 12px rgba(0,0,0,.3); }
+  }
+  @keyframes bottleneckPulse {
+    0%,100% { box-shadow: 0 0 0 2px var(--fill-danger), 0 1px 2px rgba(0,0,0,.06), 0 0 0 0 rgba(226,75,74,.4); }
+    50% { box-shadow: 0 0 0 2px var(--fill-danger), 0 1px 2px rgba(0,0,0,.06), 0 0 16px 4px rgba(226,75,74,.4); }
+  }
+  .bottleneck { animation: bottleneckPulse 1.6s ease-in-out infinite; }
+  .bottleneck::after {
+    content: '⛔';
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 11px;
+    text-align: center;
+    background: var(--fill-danger);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
   @media (prefers-reduced-motion: reduce){ #pulse{animation:none !important;} .bottleneck{animation:none} }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; margin:0 0 1rem; }
+  .legend-item { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); }
+  .legend-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -139,6 +173,13 @@
     </div>
   </div>
 
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--border-strong);"></span>Tiempo libre</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--fill-accent);"></span>Bien equilibrada</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--fill-warning);"></span>Carga alta</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--fill-danger);"></span>Cuello de botella ⛔</span>
+  </div>
+
   <p style="font-size:12px; color:var(--text-muted); margin:0 0 4px;">Sigue el punto: recorre toda la línea de izquierda a derecha, despacio, y vuelve a empezar.</p>
   <div style="position:relative; padding:26px 0 6px;">
     <div style="position:absolute; left:0; right:0; top:50%; height:2px; background:var(--border);"></div>
@@ -160,16 +201,16 @@
 
 <script>
 const tasks = [
-  {id:'A', name:'Recepción', desc:'recibe la fruta del campo', t:15, area:4.95},
-  {id:'B', name:'Selección', desc:'separa la fruta en buen estado', t:20, area:4.95},
-  {id:'C', name:'Lavado', desc:'quita tierra y residuos', t:18, area:14.85},
-  {id:'D', name:'Pelado', desc:'retira la cáscara', t:25, area:6.34},
-  {id:'E', name:'Despulpado', desc:'extrae la pulpa de la fruta', t:22, area:5.94},
-  {id:'F', name:'Pasteurizado', desc:'calienta la pulpa para conservarla', t:30, area:19.80},
-  {id:'G', name:'Envasado', desc:'llena las bolsas con producto', t:20, area:7.92},
-  {id:'H', name:'Enfriado', desc:'baja la temperatura del envase', t:15, area:7.92},
-  {id:'I', name:'Etiquetado', desc:'pega la etiqueta en cada bolsa', t:10, area:2.64},
-  {id:'J', name:'Empaque', desc:'arma las cajas para despacho', t:18, area:13.20},
+  {id:'A', name:'Recepción', desc:'recibe la fruta del campo', t:15, area:4.95, icon:'📥'},
+  {id:'B', name:'Selección', desc:'separa la fruta en buen estado', t:20, area:4.95, icon:'🔍'},
+  {id:'C', name:'Lavado', desc:'quita tierra y residuos', t:18, area:14.85, icon:'🚿'},
+  {id:'D', name:'Pelado', desc:'retira la cáscara', t:25, area:6.34, icon:'🔪'},
+  {id:'E', name:'Despulpado', desc:'extrae la pulpa de la fruta', t:22, area:5.94, icon:'🥭'},
+  {id:'F', name:'Pasteurizado', desc:'calienta la pulpa para conservarla', t:30, area:19.80, icon:'🔥'},
+  {id:'G', name:'Envasado', desc:'llena las bolsas con producto', t:20, area:7.92, icon:'📦'},
+  {id:'H', name:'Enfriado', desc:'baja la temperatura del envase', t:15, area:7.92, icon:'❄️'},
+  {id:'I', name:'Etiquetado', desc:'pega la etiqueta en cada bolsa', t:10, area:2.64, icon:'🏷️'},
+  {id:'J', name:'Empaque', desc:'arma las cajas para despacho', t:18, area:13.20, icon:'🧳'},
 ];
 const SUM_T = tasks.reduce((a,b)=>a+b.t,0);
 const TOTAL_AREA = tasks.reduce((a,b)=>a+b.area,0);
@@ -230,15 +271,17 @@ function render(units){
     const info = roleFor(ratio, s.overloaded);
     const div = document.createElement('div');
     const isBottleneck = i === maxIdx;
-    div.className = isBottleneck ? 'bottleneck' : '';
+    div.className = 'station-card' + (isBottleneck ? ' bottleneck' : '');
     const bg = info.role === 'gray' ? 'var(--surface-1)' : 'var(--bg-' + info.role + ')';
     const fg = info.role === 'gray' ? 'var(--text-secondary)' : 'var(--text-' + info.role + ')';
-    div.style.cssText = 'background:' + bg + '; border-radius:var(--radius); padding:10px 8px; text-align:center; min-height:104px; display:flex; flex-direction:column; justify-content:space-between;';
+    div.style.background = bg;
+    const stationIcons = s.tasks.map(t=>t.icon).join(' ');
     const stationName = s.tasks.map(t=>t.name).join(' y ');
     const stationDesc = s.tasks.map(t=>t.desc).join('; luego ');
     div.title = stationName + ' — ' + stationDesc + ' (' + info.label + ')';
     div.innerHTML =
-      '<p style="font-size:12px; color:' + fg + '; font-weight:500; margin:0 0 3px; line-height:1.3;">' + stationName + '</p>' +
+      '<p style="font-size:16px; margin:0 0 2px; line-height:1;">' + stationIcons + '</p>' +
+      '<p style="font-size:12px; color:' + fg + '; font-weight:600; margin:0 0 3px; line-height:1.3;">' + stationName + '</p>' +
       (showDesc ? '<p style="font-size:10px; color:' + fg + '; margin:0 0 5px; line-height:1.3; opacity:0.9;">' + stationDesc + '</p>' : '') +
       '<p style="font-size:11px; color:' + fg + '; margin:0 0 4px; font-weight:500;">' + s.time.toFixed(0) + ' s</p>' +
       '<p style="font-size:10px; color:' + fg + '; margin:0; font-weight:500;">' + info.label + '</p>';
