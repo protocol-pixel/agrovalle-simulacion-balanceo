@@ -194,6 +194,14 @@
     <span id="metric-area" style="font-size:13px; font-weight:500;">88.5 m²</span>
   </div>
 
+  <p style="font-size:12px; color:var(--text-muted); margin:1.5rem 0 6px;">Inversión estimada en puestos de trabajo</p>
+  <div style="display:flex; justify-content:space-between; margin-top:0;">
+    <span style="font-size:12px; color:var(--text-secondary);">Estaciones necesarias × S/. 3,500 c/u (operario + implementación del puesto)</span>
+    <span id="metric-invest" style="font-size:13px; font-weight:500;">S/. 24,500</span>
+  </div>
+  <div id="invest-compare" style="background:var(--surface-1); border-radius:var(--radius); padding:0.75rem 1rem; margin-top:10px; font-size:12px; color:var(--text-secondary); line-height:1.7;"></div>
+  <p style="font-size:11px; color:var(--text-muted); margin:6px 0 0;">Costo por estación: estimado referencial para el ejercicio, no incluye maquinaria fija ni construcción (esos costos no cambian según cómo se agrupen las tareas).</p>
+
   <p id="insight" style="font-size:13px; color:var(--text-secondary); margin:1.25rem 0 0; line-height:1.6;"></p>
 
   <footer>Caso práctico — Diseño de Instalaciones · AgroValle Piura S.A.C.</footer>
@@ -214,6 +222,7 @@ const tasks = [
 ];
 const SUM_T = tasks.reduce((a,b)=>a+b.t,0);
 const TOTAL_AREA = tasks.reduce((a,b)=>a+b.area,0);
+const COST_PER_STATION = 3500;
 
 function assign(c){
   const stations = [];
@@ -229,6 +238,11 @@ function assign(c){
   });
   if (cur.length) stations.push({tasks:cur, time:curT});
   return stations;
+}
+
+function stationsFor(units){
+  const c = 3600 / (units / 8);
+  return assign(c).length;
 }
 
 function roleFor(ratio, overloaded){
@@ -251,6 +265,7 @@ function render(units){
   document.getElementById('metric-n').textContent = n;
   document.getElementById('metric-ef').textContent = ef.toFixed(1) + '%';
   document.getElementById('metric-area').textContent = TOTAL_AREA.toFixed(1) + ' m²';
+  document.getElementById('metric-invest').textContent = 'S/. ' + (n * COST_PER_STATION).toLocaleString('es-PE');
 
   let maxRatio = 0, maxIdx = 0;
   stations.forEach((s, i) => {
@@ -327,7 +342,24 @@ function render(units){
   document.getElementById('insight').textContent = insightText;
 }
 
+function renderInvestCompare(){
+  const unitsInput = document.getElementById('units');
+  const minUnits = parseInt(unitsInput.min);
+  const maxUnits = parseInt(unitsInput.max);
+  const minN = stationsFor(minUnits);
+  const maxN = stationsFor(maxUnits);
+  const minCost = minN * COST_PER_STATION;
+  const maxCost = maxN * COST_PER_STATION;
+  const pct = ((maxCost - minCost) / minCost * 100).toFixed(0);
+
+  document.getElementById('invest-compare').innerHTML =
+    minUnits + ' u/turno → ' + minN + ' estaciones → S/. ' + minCost.toLocaleString('es-PE') + '<br>' +
+    maxUnits + ' u/turno → ' + maxN + ' estaciones → S/. ' + maxCost.toLocaleString('es-PE') + '<br>' +
+    '<strong style="color:var(--text-primary);">+' + pct + '% de inversión en puestos de trabajo</strong> al pasar del mínimo al máximo de producción.';
+}
+
 document.getElementById('units').addEventListener('input', (e) => render(parseInt(e.target.value)));
+renderInvestCompare();
 render(800);
 </script>
 </body>
