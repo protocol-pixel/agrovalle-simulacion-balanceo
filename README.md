@@ -11,8 +11,9 @@ Al mover el control de "unidades por turno (8 h)" la simulación recalcula en vi
 - **Aprovechamiento de la línea** (eficiencia de balanceo).
 - **Cuello de botella**: la estación con más carga respecto al ciclo, resaltada visualmente.
 - **Espacio por zona (m²)**, calculado previamente con el método de Guerchet, y el espacio total de planta.
+- **Inversión estimada en puestos de trabajo**: número de estaciones × costo por estación (operario + implementación del puesto), con una comparación fija entre el mínimo (400 u/turno) y el máximo (1200 u/turno) del rango.
 
-El objetivo es didáctico: evidenciar que la estación que más tiempo consume (pasteurizado) suele ser también la que más espacio requiere.
+El objetivo es didáctico: evidenciar que la estación que más tiempo consume (pasteurizado) suele ser también la que más espacio requiere, y que producir más rápido implica más estaciones — y por lo tanto más inversión.
 
 ## Cómo usarlo
 
